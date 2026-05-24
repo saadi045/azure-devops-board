@@ -1,0 +1,43 @@
+# .github/workflows/ci.yml
+#
+# Continuous Integration workflow.
+# Runs automatically on every push and pull request to main.
+#
+# This first version just proves the mechanism works.
+# Phase 3 adds the real lint + test pipeline with a database.
+
+name: CI
+
+# When should this workflow run?
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  hello:
+    name: Smoke check
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out your repository code onto the runner
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Step 3: Print some info to confirm everything is wired up
+      - name: Show environment
+        run: |
+          echo "GitHub Actions is working!"
+          echo "Node version:"
+          node --version
+          echo "npm version:"
+          npm --version
+          echo "Repository: ${{ github.repository }}"
+          echo "Triggered by: ${{ github.event_name }}"
