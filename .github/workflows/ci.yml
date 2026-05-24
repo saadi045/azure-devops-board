@@ -1,14 +1,20 @@
 # .github/workflows/ci.yml
 #
-# Continuous Integration workflow.
-# Runs automatically on every push and pull request to main.
+# Continuous Integration pipeline for task-api.
 #
-# This first version just proves the mechanism works.
-# Phase 3 adds the real lint + test pipeline with a database.
+# On every push and pull request to main:
+#   1. Check out the code
+#   2. Install dependencies
+#   3. Run the linter
+#   4. Start a PostgreSQL service container
+#   5. Apply database migrations
+#   6. Run all tests
+#
+# If any step fails, the whole run is marked failed (red X).
+# If everything passes, the run is marked successful (green check).
 
 name: CI
 
-# When should this workflow run?
 on:
   push:
     branches: [main]
@@ -16,28 +22,55 @@ on:
     branches: [main]
 
 jobs:
-  hello:
-    name: Smoke check
+  test:
+    name: Lint and Test
     runs-on: ubuntu-latest
 
+    # Service containers run alongside the job. GitHub starts them
+    # before the steps run and tears them down after.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: taskuser
+          POSTGRES_PASSWORD: taskpass
+          POSTGRES_DB: taskdb_test
+        ports:
+          - 5432:5432
+        # Wait until Postgres is actually ready before starting steps.
+        options: >-
+          --health-cmd "pg_isready -U taskuser -d taskdb_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Environment variables available to all steps in this job.
+    env:
+      DATABASE_URL: postgresql://taskuser:taskpass@localhost:5432/taskdb_test
+      JWT_SECRET: ci-test-secret-not-used-in-production
+      NODE_ENV: test
+
     steps:
-      # Step 1: Check out your repository code onto the runner
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          # Cache npm downloads between runs for speed
+          cache: 'npm'
 
-      # Step 3: Print some info to confirm everything is wired up
-      - name: Show environment
-        run: |
-          echo "GitHub Actions is working!"
-          echo "Node version:"
-          node --version
-          echo "npm version:"
-          npm --version
-          echo "Repository: ${{ github.repository }}"
-          echo "Triggered by: ${{ github.event_name }}"
+      # npm ci is the CI-friendly install: fast, reproducible, uses the lockfile
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+      # Apply database migrations to the service container's database
+      - name: Run migrations
+        run: npm run migrate:up
+
+      - name: Run tests
+        run: npm test
