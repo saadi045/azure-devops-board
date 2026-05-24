@@ -1,0 +1,55 @@
+{
+  "name": "task-api",
+  "version": "0.2.0",
+  "description": "Task management API — DevOps portfolio project demonstrating full CI/CD lifecycle",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "db:reset": "docker compose down -v && docker compose up -d && timeout /t 8 && node-pg-migrate up",
+    "migrate:up": "node-pg-migrate up",
+    "migrate:down": "node-pg-migrate down",
+    "migrate:redo": "node-pg-migrate redo",
+    "migrate:create": "node-pg-migrate create",
+    "migrate:status": "node-pg-migrate up --dry-run",
+    "docker:build": "docker build -t task-api:latest .",
+    "docker:up": "docker compose up --build -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f app",
+    "docker:migrate": "docker compose exec app npx node-pg-migrate up",
+    "docker:shell": "docker compose exec app sh",
+    "test": "jest --runInBand",
+    "test:watch": "jest --watch --runInBand",
+    "test:coverage": "jest --coverage --runInBand",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/ --fix"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "devops",
+    "api",
+    "nodejs",
+    "express",
+    "docker",
+    "ci-cd",
+    "portfolio"
+  ],
+  "author": "Saad Abdullah <saadabdullah1045@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.1",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.13.1",
+    "uuid": "^11.0.3"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "node-pg-migrate": "^8.0.4",
+    "supertest": "^7.2.2"
+  }
+}

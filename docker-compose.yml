@@ -1,0 +1,47 @@
+﻿# docker-compose.yml
+#
+# Defines the services our task-api project needs to run locally.
+# Two services: the Node.js app (built from our Dockerfile) and PostgreSQL.
+# Both run on the same Docker network so they can reach each other by name.
+#
+# The app's healthcheck lives in the Dockerfile (HEALTHCHECK directive).
+# We don't define one here — Compose would override the image's healthcheck.
+
+services:
+  app:
+    build: .
+    container_name: task-api-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://taskuser:taskpass@db:5432/taskdb
+      JWT_SECRET: change-me-in-real-production-this-is-dev-only
+      CORS_ORIGIN: "*"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    container_name: task-api-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: taskuser
+      POSTGRES_PASSWORD: taskpass
+      POSTGRES_DB: taskdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - task-api-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskuser -d taskdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  task-api-db-data:
+    name: task-api-db-data

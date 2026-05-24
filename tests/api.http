@@ -1,0 +1,127 @@
+### Task API — manual test requests
+### Click "Send Request" above any HTTP method line to test it.
+
+### ============== HEALTH ==============
+
+### Liveness
+GET http://localhost:3000/health
+
+### Readiness
+GET http://localhost:3000/health/ready
+
+### ============== ROOT ==============
+
+### API info
+GET http://localhost:3000/
+
+### ============== TASKS — READ ==============
+
+### List all tasks
+GET http://localhost:3000/api/v1/tasks
+
+### List only completed tasks
+GET http://localhost:3000/api/v1/tasks?completed=true
+
+### List only pending tasks
+GET http://localhost:3000/api/v1/tasks?completed=false
+
+### List by priority high
+GET http://localhost:3000/api/v1/tasks?priority=high
+
+### List by tag welcome
+GET http://localhost:3000/api/v1/tasks?tag=welcome
+
+### Get a single task by id
+GET http://localhost:3000/api/v1/tasks/1
+
+### Get stats
+GET http://localhost:3000/api/v1/tasks/stats
+
+### ============== TASKS — CREATE ==============
+
+### Create — minimum required (just title)
+POST http://localhost:3000/api/v1/tasks
+Content-Type: application/json
+
+{
+  "title": "Learn Docker basics"
+}
+
+### Create — full payload with priority, due date, tags
+POST http://localhost:3000/api/v1/tasks
+Content-Type: application/json
+
+{
+  "title": "Deploy first containerized app",
+  "priority": "high",
+  "dueDate": "2026-05-25T18:00:00Z",
+  "tags": ["docker", "learning", "devops"]
+}
+
+### Create — overdue task
+POST http://localhost:3000/api/v1/tasks
+Content-Type: application/json
+
+{
+  "title": "This is overdue",
+  "priority": "high",
+  "dueDate": "2024-01-01T00:00:00Z"
+}
+
+### ============== TASKS — UPDATE ==============
+
+### Mark task as completed
+PATCH http://localhost:3000/api/v1/tasks/3
+Content-Type: application/json
+
+{
+  "completed": true
+}
+
+### Multi-field update
+PATCH http://localhost:3000/api/v1/tasks/3
+Content-Type: application/json
+
+{
+  "title": "Updated title",
+  "priority": "medium",
+  "dueDate": "2026-06-01T00:00:00Z",
+  "completed": false
+}
+
+### ============== TASKS — DELETE ==============
+
+### Delete a task
+DELETE http://localhost:3000/api/v1/tasks/3
+
+### ============== VALIDATION ERRORS ==============
+
+### Missing title
+POST http://localhost:3000/api/v1/tasks
+Content-Type: application/json
+
+{}
+
+### Invalid priority
+POST http://localhost:3000/api/v1/tasks
+Content-Type: application/json
+
+{
+  "title": "Bad priority",
+  "priority": "urgent"
+}
+
+### Invalid due date
+POST http://localhost:3000/api/v1/tasks
+Content-Type: application/json
+
+{
+  "title": "Bad date",
+  "dueDate": "not-a-date"
+}
+
+### ============== REQUEST ID PROPAGATION ==============
+
+### Send a custom request ID — should appear in response and logs
+GET http://localhost:3000/api/v1/tasks
+X-Request-ID: my-custom-trace-id-12345

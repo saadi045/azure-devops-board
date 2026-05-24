@@ -1,0 +1,44 @@
+# Exclude things from being copied INTO the Docker image.
+# Similar in spirit to .gitignore, but separate purpose.
+
+# Dependencies — we install them fresh inside the image
+node_modules
+npm-debug.log*
+
+# Secrets — never bake into image
+.env
+.env.test
+.env.local
+
+# Local development files
+.vscode
+.idea
+*.swp
+
+# Build outputs and test reports
+coverage
+dist
+build
+
+# Git history — not needed inside container
+.git
+.gitignore
+.gitattributes
+
+# Documentation and config not needed at runtime
+README.md
+docs
+*.md
+
+# Test files — production image doesn't need them
+tests
+jest.config.js
+
+# Docker files themselves don't need to be inside the image
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# OS metadata
+.DS_Store
+Thumbs.db
