@@ -1,7 +1,7 @@
 {
   "name": "task-api",
   "version": "0.2.0",
-  "description": "Task management API — DevOps portfolio project demonstrating full CI/CD lifecycle",
+  "description": "Task management API - DevOps portfolio project demonstrating full CI/CD lifecycle",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -21,8 +21,8 @@
     "test": "jest --runInBand",
     "test:watch": "jest --watch --runInBand",
     "test:coverage": "jest --coverage --runInBand",
-    "lint": "npx eslint src/ tests/",
-    "lint:fix": "npx eslint src/ tests/ --fix"
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/ --fix"
   },
   "engines": {
     "node": ">=20"

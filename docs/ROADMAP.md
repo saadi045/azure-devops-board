@@ -43,7 +43,7 @@ The goal of Week 1 is to have a working application running locally with a real 
 ### Day 6–7 — Production Dockerfile
 - [x] Day 6: Basic Dockerfile + Docker Compose with PostgreSQL
 - [x] Day 7: Multi-stage Dockerfile, non-root user, image-level healthcheck
-
+    
 ### Day 8–9 — GitHub Actions CI
 - Lint job
 - Test job (with Postgres service container)

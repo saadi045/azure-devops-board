@@ -31,7 +31,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
  * and hash output. You never need to store the salt separately.
  */
 async function hashPassword(password) {
-  return bcrypt.hash(password, BCRYPT_ROUNDS);
+  return await bcrypt.hash(password, BCRYPT_ROUNDS);
 }
 
 /**
@@ -40,7 +40,7 @@ async function hashPassword(password) {
  * to prevent timing attacks.
  */
 async function verifyPassword(password, hash) {
-  return bcrypt.compare(password, hash);
+  return await bcrypt.compare(password, hash);
 }
 
 /**

@@ -56,7 +56,7 @@ function createApp() {
     });
   }
 
-app.use('/health', healthRoutes);
+  app.use('/health', healthRoutes);
   app.use('/api/v1/tasks', requireAuth, tasksRoutes);
   app.use('/api/v1/auth', authRoutes);
 
