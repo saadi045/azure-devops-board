@@ -2,16 +2,12 @@
 #
 # Continuous Integration pipeline for task-api.
 #
-# On every push and pull request to main:
-#   1. Check out the code
-#   2. Install dependencies
-#   3. Run the linter
-#   4. Start a PostgreSQL service container
-#   5. Apply database migrations
-#   6. Run all tests
+# Three independent jobs run in parallel on every push and PR to main:
+#   - lint:  runs ESLint
+#   - test:  runs migrations + the full test suite against PostgreSQL
+#   - build: verifies the production Docker image builds successfully
 #
-# If any step fails, the whole run is marked failed (red X).
-# If everything passes, the run is marked successful (green check).
+# Each job reports its own pass/fail status, so failures are easy to locate.
 
 name: CI
 
@@ -22,12 +18,37 @@ on:
     branches: [main]
 
 jobs:
+  # -----------------------------------------------------------------
+  # Job 1: Lint
+  # Fast static analysis. No database needed.
+  # -----------------------------------------------------------------
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+  # -----------------------------------------------------------------
+  # Job 2: Test
+  # Runs the full test suite against a real PostgreSQL service container.
+  # -----------------------------------------------------------------
   test:
-    name: Lint and Test
+    name: Test
     runs-on: ubuntu-latest
 
-    # Service containers run alongside the job. GitHub starts them
-    # before the steps run and tears them down after.
     services:
       postgres:
         image: postgres:16-alpine
@@ -37,14 +58,12 @@ jobs:
           POSTGRES_DB: taskdb_test
         ports:
           - 5432:5432
-        # Wait until Postgres is actually ready before starting steps.
         options: >-
           --health-cmd "pg_isready -U taskuser -d taskdb_test"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
 
-    # Environment variables available to all steps in this job.
     env:
       DATABASE_URL: postgresql://taskuser:taskpass@localhost:5432/taskdb_test
       JWT_SECRET: ci-test-secret-not-used-in-production
@@ -58,19 +77,37 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          # Cache npm downloads between runs for speed
           cache: 'npm'
 
-      # npm ci is the CI-friendly install: fast, reproducible, uses the lockfile
       - name: Install dependencies
         run: npm ci
 
-      - name: Run linter
-        run: npm run lint
-
-      # Apply database migrations to the service container's database
       - name: Run migrations
         run: npm run migrate:up
 
       - name: Run tests
         run: npm test
+
+  # -----------------------------------------------------------------
+  # Job 3: Build
+  # Verifies the production Docker image builds cleanly.
+  # Catches Dockerfile bugs before they reach deployment.
+  # -----------------------------------------------------------------
+  build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: task-api:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
