@@ -49,6 +49,7 @@ The goal of Week 1 is to have a working application running locally with a real 
 - Test job (with Postgres service container)
 - Build job (Docker image)
 - Job dependencies and parallelization
+- Parallel CI jobs (lint, test, Docker build) + coverage reporting
 
 ### Day 10–11 — Security and CD
 - Trivy container scanning
